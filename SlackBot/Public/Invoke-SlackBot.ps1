@@ -2,12 +2,12 @@
 Function Invoke-SlackBot {
     [cmdletbinding()]
     Param(
-        [string]$Token = (Import-Clixml "$PSscriptPath\..\Token.xml"),  #So I don't accidentally put it on the internet
+        [string]$Token = (Import-Clixml "$PSScriptRoot\..\Token.xml"),  #So I don't accidentally put it on the internet
         [string]$LogPath = "$Env:USERPROFILE\Logs\SlackBot.log",
-        [string]$PSSlackConfigPath = "$PSscriptPath\..\PSSlackConfig.xml"
+        [string]$PSSlackConfigPath = "$PSScriptRoot\..\PSSlackConfig.xml"
     )
     
-    Set-PSSlackConfig -Path $PSSlackConfigPath -Token $Token
+    #Set-PSSlackConfig -Path $PSSlackConfigPath -Token $Token
     
     #Web API call starts the session and gets a websocket URL to use.
     $RTMSession = Invoke-RestMethod -Uri https://slack.com/api/rtm.start -Body @{token="$Token"}
