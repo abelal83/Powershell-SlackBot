@@ -40,7 +40,10 @@ Function Invoke-SlackBot
                 Do 
                 {
                     $Conn = $WS.ReceiveAsync($Recv, $CT)
-                    While (!$Conn.IsCompleted) { Start-Sleep -Milliseconds 100 }
+                    While (!$Conn.IsCompleted) 
+                    { 
+                        Start-Sleep -Milliseconds 100 
+                    }
 
                     $Recv.Array[0..($Conn.Result.Count - 1)] | ForEach-Object { $RTM = $RTM + [char]$_ }
 
