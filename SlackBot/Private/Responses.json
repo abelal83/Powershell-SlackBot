@@ -1,0 +1,23 @@
+[
+    {
+        "keywords":  [
+                            "help",
+                            "commands"
+                        ],
+        "response":  "will help"
+    },
+    {
+        "keywords":  [
+                            "bme",
+                            "balance"
+                        ],
+        "response":  "BME is unstable!"
+    },
+    {
+        "keywords":  [
+            "default"
+        ],
+        "response":  "whatcha talking about?!"
+    }
+
+]

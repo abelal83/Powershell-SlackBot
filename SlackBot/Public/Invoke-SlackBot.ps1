@@ -63,32 +63,12 @@ Function Invoke-SlackBot
                             If ( ($_.text -Match "<@$($RTMSession.self.id)>") -or $_.channel.StartsWith('D') ){
                                 #A message was sent to the bot
 
-                                # *** Responses go here, for example..***
-                                $words = "$($_.text)".ToLower()
-                                while ($words -match '  ')
-                                {
-                                    $words = $words -replace '  ',' '
-                                }
-                                
-                                #$words = $words -split ' '
-                                
-                                Switch ($words)
-                                {
-                                    #{@("hey","hello","hi") -contains $_} { Send-SlackMsg -Text 'Hello!' -Channel $RTM.Channel }
-                                    #{@("bye","cya") -contains $_} { Send-SlackMsg -Text 'Goodbye!' -Channel $RTM.Channel }
-                                    { $words -match @("help |", "commands |") } { Send-SlackMsg `
-                                        -Text ("Right now I'm " + (0x0A -as [char]) + "not very useful!") `
-                                        -Channel $RTM.Channel }
-                                    #{@("help", "commands") -contains $_ } { Send-SlackMsg `
-                                    #            -Text ("Right now I'm " + (0x0A -as [char]) + "not very useful!") `
-                                    #            -Channel $RTM.Channel }
+                                $response = Get-Response -Command $_.text.ToLower()
+                                Send-SlackMsg -Text $response -Channel $RTM.Channel 
 
-                                    default 
-                                    { 
-                                        Write-Verbose "I have no response for $_" 
-                                              Send-SlackMsg -Text "I have no response for $_" -Channel $RTM.Channel
-                                    }
-                                }
+                                # { $words -match @("help |", "commands |") } { Send-SlackMsg `
+                                #      -Text ("Right now I'm " + (0x0A -as [char]) + "not very useful!") `
+                                #       -Channel $RTM.Channel }      
                             } 
                             Else
                             {

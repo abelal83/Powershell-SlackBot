@@ -66,7 +66,8 @@ RequiredModules = @()
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = 'Invoke-SlackBot','Send-SlackMsg'
+#FunctionsToExport = 'Invoke-SlackBot','Send-SlackMsg'
+FunctionsToExport = '*'
 
 # Cmdlets to export from this module
 CmdletsToExport = '*'
