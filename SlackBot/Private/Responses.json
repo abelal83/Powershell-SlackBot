@@ -1,14 +1,29 @@
-[
+{ "command" : [
     {
         "keywords":  [
-                            "help",
-                            "commands"
+                            "name?",
+                            "name",
+                            "your",
+                            "what's",
+                            "what",
+                            "is"
                         ],
-        "response":  "will help"
+        "response":  "My name is OmniBot!"
     },
     {
         "keywords":  [
-                            "bme",
+                            "help",
+                            "commands",
+                            "can",
+                            "do",
+                            "are",
+                            "useful"
+                        ],
+        "response":  "I'm not very helpful right now, come back to me later when I've grown up!"
+    },
+    {
+        "keywords":  [
+                            "OCB",
                             "balance"
                         ],
         "response":  "BME is unstable!"
@@ -19,5 +34,9 @@
         ],
         "response":  "whatcha talking about?!"
     }
-
-]
+],
+    "confirmation" : 
+    {
+        "responses" : ["Do you want me to proceed?", "Are you sure?"]
+    }
+}

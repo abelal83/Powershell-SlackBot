@@ -1,3 +1,4 @@
+$ErrorActionPreference = "Stop"
 Function Get-Response 
 {
     [cmdletbinding()]
@@ -8,7 +9,7 @@ Function Get-Response
 
     $responses = Get-Content -Path "$PSScriptRoot\Responses.json" -Raw | ConvertFrom-Json    
 
-    Write-Verbose ($responses | Out-String)
+    Write-Verbose ($responses.command | Out-String)
 
     $words = $Command -split ' '
 
@@ -19,19 +20,18 @@ Function Get-Response
     foreach ($word in $words) 
     {
         # search responses.json under keywords for each word until something common found
-        $itemWithWord = $responses.Where( { $_.keywords.Contains($word) } )
+        $itemWithWord = $responses.command.Where( { $_.keywords.ToLower().Contains($word.ToLower()) } )
         
         if ($itemWithWord.Count -eq 0)
         {
-            $responseMessage = $responses.Where( { $_.keywords.Contains('default') } ).response
-            Write-Verbose -Message "No keywords found, replying with default response $responseMessage"
-            return $responseMessage
+            Write-Log -Message "No keywords found for $word"
+            continue
         }
 
         $itemWithWord.ForEach(
             {
                 # check if response exists, if so increment responsecount
-                $responseRows = $possibleResponses.Select("response = '" + $_.response + "'")
+                $responseRows = $possibleResponses.Select("response = '" + (Set-EscapeLikeValue -Value $_.response) + "'")
 
                 if ($responseRows.Count -eq 0)
                 {
@@ -57,6 +57,48 @@ Function Get-Response
         )
     }
 
-    $responseMessage = $possibleResponses.Select("responsecount = MAX(responsecount)").response
-    return $possibleResponses.Select("responsecount = MAX(responsecount)").response
+    $responseRow = $possibleResponses.Select("responsecount = MAX(responsecount)")
+    if ($responseRow.Count -eq 0)
+    {
+        return $responses.command.Where( { $_.keywords.Contains('default') } ).response
+    }
+
+    return $responseRow.response
 }
+
+# helper for stupid datatable.select method which can't handle certain characters
+function Set-EscapeLikeValue
+{
+    param(
+        [CmdletBinding()]
+        [Parameter(Mandatory=$true)]
+        [string] $Value
+    )
+    $sb = New-Object System.Text.StringBuilder::($value.Length);
+    for ($i = 0; $i -lt $value.Length; $i++)
+    {
+        [char] $c = $value[$i];
+        switch ($c)
+        {
+            ']' {}
+            '[' {}
+            '%' {}
+            '*' {
+                $sb.Append("[").Append($c).Append("]");
+                break;
+            }
+            "'" {
+                $sb.Append("''");
+                break;
+            }
+            default {
+                $sb.Append($c);
+                break;
+            }
+        }
+    }
+    return $sb.ToString();
+}
+
+ #Get-Response -Command 'NAME'
+ #Get-Response -Command 'hi'
