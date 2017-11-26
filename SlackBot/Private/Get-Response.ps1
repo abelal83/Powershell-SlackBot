@@ -59,12 +59,13 @@ Function Get-Response
     }
 
     $responseRow = $possibleResponses.Select("responsecount = MAX(responsecount)")
-    if ($responseRow.Count -eq 0)
-    {
-        return $responses.command.Where( { $_.keywords.Contains('default') } ).response
-    }
 
-    return $responseRow.response
+    switch ($responseRow.Count) 
+    {
+        0 {  return $responses.command.Where( { $_.keywords.Contains('default') } ).response }
+        1 { return $responseRow.response }
+        default { return $responses.command.Where( { $_.keywords.Contains('default') } ).response }
+    }
 }
 
 # helper for stupid datatable.select method which can't handle certain characters
@@ -103,5 +104,5 @@ function Set-EscapeLikeValue
 
 #function write-log 
 #{}
-# Get-Response -Command 'my name is'
+ #Get-Response -Command 'are you still a baby?'
  #Get-Response -Command 'hi'
