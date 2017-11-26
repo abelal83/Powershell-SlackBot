@@ -31,7 +31,8 @@ Function Get-Response
         $itemWithWord.ForEach(
             {
                 # check if response exists, if so increment responsecount
-                $responseRows = $possibleResponses.Select("response = '" + (Set-EscapeLikeValue -Value $_.response) + "'")
+                $escapedResponse = Set-EscapeLikeValue -Value $_.response
+                $responseRows = $possibleResponses.Select("response = '" + $escapedResponse + "'")
 
                 if ($responseRows.Count -eq 0)
                 {
@@ -84,21 +85,23 @@ function Set-EscapeLikeValue
             '[' {}
             '%' {}
             '*' {
-                $sb.Append("[").Append($c).Append("]");
+                $sb.Append("[").Append($c).Append("]") | Out-Null
                 break;
             }
             "'" {
-                $sb.Append("''");
+                $sb.Append("''") | Out-Null
                 break;
             }
             default {
-                $sb.Append($c);
+                $sb.Append($c) | Out-Null
                 break;
             }
         }
     }
-    return $sb.ToString();
+    return (,$sb.ToString())
 }
 
- #Get-Response -Command 'NAME'
+#function write-log 
+#{}
+# Get-Response -Command 'my name is'
  #Get-Response -Command 'hi'
