@@ -31,7 +31,7 @@ Function Get-Response
         $itemWithWord.ForEach(
             {
                 # check if response exists, if so increment responsecount
-                $escapedResponse = Set-EscapeLikeValue -Value $_.response
+                $escapedResponse = Format-EscapeValue -Value $_.response
                 $responseRows = $possibleResponses.Select("response = '" + $escapedResponse + "'")
 
                 if ($responseRows.Count -eq 0)
@@ -69,7 +69,7 @@ Function Get-Response
 }
 
 # helper for stupid datatable.select method which can't handle certain characters
-function Set-EscapeLikeValue
+function Format-EscapeValue
 {
     param(
         [CmdletBinding()]
@@ -80,29 +80,28 @@ function Set-EscapeLikeValue
     for ($i = 0; $i -lt $value.Length; $i++)
     {
         [char] $c = $value[$i];
+        
         switch ($c)
         {
-            ']' {}
+            { @('[',']', '%', '*') -contains $_ } {
+                                        $sb.Append("[").Append($c).Append("]") | Out-Null
+                                        break
+                                    }
             '[' {}
             '%' {}
             '*' {
-                $sb.Append("[").Append($c).Append("]") | Out-Null
-                break;
-            }
+                    $sb.Append("[").Append($c).Append("]") | Out-Null
+                    break
+                }
             "'" {
-                $sb.Append("''") | Out-Null
-                break;
-            }
+                    $sb.Append("''") | Out-Null
+                    break;
+                }
             default {
-                $sb.Append($c) | Out-Null
-                break;
-            }
+                        $sb.Append($c) | Out-Null
+                        break;
+                    }
         }
     }
     return (,$sb.ToString())
 }
-
-#function write-log 
-#{}
- #Get-Response -Command 'are you still a baby?'
- #Get-Response -Command 'hi'
