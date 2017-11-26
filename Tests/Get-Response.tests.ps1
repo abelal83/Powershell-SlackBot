@@ -47,7 +47,7 @@ Describe 'Get-Response tests' {
 
     Context 'When asked for name' {
 
-        It "Should return default its name" {
+        It "Should return its name" {
             Get-Response -Command 'name?' | Should Be "My name is OmniBot!"
         }
     }
