@@ -35,10 +35,11 @@
     {
         "keywords":  [
                             "BME",
-                            "balance"
+                            "balance",
+                            "/bme"
                         ],
         "response":  "BME actions not available",
-        "action" : "Invoke-BmeGetBalance",
+        "action" : "Get-BmeBalance",
         "permission" : ""
     },
     {
