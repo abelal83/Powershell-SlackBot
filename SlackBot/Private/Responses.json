@@ -1,6 +1,15 @@
 { "command" : [
     {
         "keywords":  [
+                "hello",
+                "hi",
+                "hey"
+            ],
+        "response":  "Hey there!",
+        "action" : ""
+    },
+    {        
+        "keywords":  [
                             "name?",
                             "name",
                             "your",
@@ -8,7 +17,8 @@
                             "what",
                             "is"
                         ],
-        "response":  "My name is OmniBot!"
+        "response":  "My name is OmniBot! What can I help you with?",
+        "action" : ""
     },
     {
         "keywords":  [
@@ -19,24 +29,32 @@
                             "are",
                             "useful"
                         ],
-        "response":  "I'm not very helpful right now, come back to me later when I've grown up!"
+        "response":  "I'm not very helpful right now, come back to me later when I've grown up! Here are things I can do.",
+        "action": "Get-OmniBotHelp"
     },
     {
         "keywords":  [
-                            "OCB",
+                            "BME",
                             "balance"
                         ],
-        "response":  "BME is unstable!"
+        "response":  "BME actions not available",
+        "action" : "Invoke-BmeGetBalance",
+        "permission" : ""
     },
     {
         "keywords":  [
             "default"
         ],
-        "response":  "whatcha talking about?!"
+        "response":  "whatcha talking about?!",
+        "action" : "Get-OmniBotHelp"
     }
 ],
     "confirmation" : 
     {
         "responses" : ["Do you want me to proceed?", "Are you sure?"]
+    },
+    "error" :
+    {
+        "responses" : ["Ooops! Something went wrong!"]
     }
 }

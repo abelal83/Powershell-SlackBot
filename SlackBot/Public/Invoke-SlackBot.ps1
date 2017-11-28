@@ -60,11 +60,36 @@ Function Invoke-SlackBot
                     {
                         {($_.type -eq 'message') -and (!$_.reply_to)} 
                         {
-                            If ( ($_.text -Match "<@$($RTMSession.self.id)>") -or $_.channel.StartsWith('D') ){
+                            If ( ($_.text -Match "<@$($RTMSession.self.id)>") -or $_.channel.StartsWith('D') )
+                            {
                                 #A message was sent to the bot
-
                                 $response = Get-Response -Command $_.text.ToLower()
-                                Send-SlackMsg -Text $response -Channel $RTM.Channel 
+                                Write-Log ("Event found for message " + ($response | ConvertTo-Json | Out-String))
+
+                                Send-SlackMsg -Text $response.Response -Channel $RTM.Channel
+
+                                # need to somehow tokenize the parameters to pass to script
+                                # maybe ask for parameters to be passed with - included
+                                # send user name for person to module talking to the bot                               
+                                
+                                if (![string]::IsNullOrEmpty($response.action))
+                                {   
+                                    try 
+                                    {
+                                        $modulePath = ($PSScriptRoot + "\..\Private\SlackBotActions\" + $response.action + ".psm1")                                  
+                                        Import-Module $modulePath
+                                        #run the function
+                                        $actionResponse = Invoke-Expression -Command $response.action
+
+                                        Send-SlackMsg -Text $actionResponse -Channel $RTM.Channel
+                                        
+                                    }
+                                    catch {
+                                        
+                                        Send-SlackMsg -Text $_.ToString() -Channel $RTM.Channel
+                                    }
+
+                                }
 
                                 # { $words -match @("help |", "commands |") } { Send-SlackMsg `
                                 #      -Text ("Right now I'm " + (0x0A -as [char]) + "not very useful!") `
@@ -75,8 +100,10 @@ Function Invoke-SlackBot
                                 Write-Log "Message ignored as it wasn't sent to @$($RTMSession.self.name) or in a DM channel" -Path $LogPath
                             }
                         }
-                        { $_.type -eq 'reconnect_url'} { $RTMSession.URL = $RTM.url }
-
+                        { $_.type -eq 'reconnect_url'} 
+                        { 
+                            $RTMSession.URL = $RTM.url 
+                        }
                         default 
                         { 
                             Write-Log "No action specified for $($RTM.type) event" -Path $LogPath 

@@ -62,9 +62,12 @@ Function Get-Response
 
     switch ($responseRow.Count) 
     {
-        0 {  return $responses.command.Where( { $_.keywords.Contains('default') } ).response }
-        1 { return $responseRow.response }
-        default { return $responses.command.Where( { $_.keywords.Contains('default') } ).response }
+        #0 {  return $responses.command.Where( { $_.keywords.Contains('default') } ).response }
+        #1 { return $responseRow.response }
+        #default { return $responses.command.Where( { $_.keywords.Contains('default') } ).response }
+        0 {  return $responses.command.Where( { $_.keywords.Contains('default') } ) }
+        1 { return $responses.command.Where( { $_.response.Contains($responseRow.response) } ) }
+        default { return $responses.command.Where( { $_.keywords.Contains('default') } ) }
     }
 }
 
