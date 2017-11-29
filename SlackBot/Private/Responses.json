@@ -8,6 +8,18 @@
         "response":  "Hey there!",
         "action" : ""
     },
+    {
+        "keywords": [
+                "get",
+                "responses",
+                "what",
+                "can",
+                "respond",
+                "//responses"
+            ],
+            "response": "getting Responses.json file....",
+            "action": "Get-ResponseFile"
+    },
     {        
         "keywords":  [
                             "name?",

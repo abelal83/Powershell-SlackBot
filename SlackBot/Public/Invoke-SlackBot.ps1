@@ -71,25 +71,9 @@ Function Invoke-SlackBot
                                 # need to somehow tokenize the parameters to pass to script
                                 # maybe ask for parameters to be passed with - included
                                 # send user name for person to module talking to the bot                               
-                                
-                                if (![string]::IsNullOrEmpty($response.action))
-                                {   
-                                    try 
-                                    {
-                                        $modulePath = ($PSScriptRoot + "\..\Private\SlackBotActions\" + $response.action + ".psm1")                                  
-                                        Import-Module $modulePath
-                                        #run the function
-                                        $actionResponse = Invoke-Expression -Command $response.action
+                                $actionResponse = Invoke-BotAction -JsonResponse $response
 
-                                        Send-SlackMsg -Text $actionResponse -Channel $RTM.Channel
-                                        
-                                    }
-                                    catch {
-                                        
-                                        Send-SlackMsg -Text $_.ToString() -Channel $RTM.Channel
-                                    }
-
-                                }
+                                Send-SlackMsg -Text $actionResponse -Channel $RTM.Channel
 
                                 # { $words -match @("help |", "commands |") } { Send-SlackMsg `
                                 #      -Text ("Right now I'm " + (0x0A -as [char]) + "not very useful!") `
