@@ -35,5 +35,7 @@ function Invoke-BotAction
         }
     }
 
+    Write-Verbose 'No action available... returning empty string'
+
     return ""    
 }

@@ -12,6 +12,9 @@ Function Invoke-SlackBot
     
     #Web API call starts the session and gets a websocket URL to use.
     $RTMSession = Invoke-RestMethod -Uri https://slack.com/api/rtm.start -Body @{token="$Token"}
+
+    # $users.members contains all users. Need to match id from this to id passed in message
+    $users = Invoke-RestMethod -Uri 'https://slack.com/api/users.list' -Body @{token="$Token"}
     Write-Log "I am $($RTMSession.self.name)" -Path $LogPath
 
     Try
@@ -65,7 +68,7 @@ Function Invoke-SlackBot
                                 #A message was sent to the bot
                                 $response = Get-Response -Command $_.text.ToLower()
                                 Write-Log ("Event found for message " + ($response | ConvertTo-Json | Out-String))
-                                
+
                                 if (![string]::IsNullOrEmpty($response.Response))
                                 {
                                     Send-SlackMsg -Text $response.Response -Channel $RTM.Channel
@@ -73,7 +76,7 @@ Function Invoke-SlackBot
 
                                 # need to somehow tokenize the parameters to pass to script
                                 # maybe ask for parameters to be passed with - included
-                                # send user name for person to module talking to the bot                               
+                                # send user name for person to module talking to the bot                         
                                 [string] $actionResponse = Invoke-BotAction -JsonResponse $response
 
                                 if (![string]::IsNullOrEmpty($actionResponse))
