@@ -15,7 +15,8 @@
                 "what",
                 "can",
                 "respond",
-                "//responses"
+                "//responses",
+                "//response"
             ],
             "response": "getting Responses.json file....",
             "action": "Get-ResponseFile"

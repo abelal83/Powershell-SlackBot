@@ -71,13 +71,12 @@ Function Invoke-SlackBot
                                 # need to somehow tokenize the parameters to pass to script
                                 # maybe ask for parameters to be passed with - included
                                 # send user name for person to module talking to the bot                               
-                                $actionResponse = Invoke-BotAction -JsonResponse $response
+                                [string] $actionResponse = Invoke-BotAction -JsonResponse $response
 
-                                Send-SlackMsg -Text $actionResponse -Channel $RTM.Channel
-
-                                # { $words -match @("help |", "commands |") } { Send-SlackMsg `
-                                #      -Text ("Right now I'm " + (0x0A -as [char]) + "not very useful!") `
-                                #       -Channel $RTM.Channel }      
+                                if (![string]::IsNullOrEmpty($actionResponse))
+                                {
+                                    Send-SlackMsg -Text $actionResponse -Channel $RTM.Channel
+                                }
                             } 
                             Else
                             {
