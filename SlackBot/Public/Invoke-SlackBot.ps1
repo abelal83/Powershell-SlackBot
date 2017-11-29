@@ -65,8 +65,11 @@ Function Invoke-SlackBot
                                 #A message was sent to the bot
                                 $response = Get-Response -Command $_.text.ToLower()
                                 Write-Log ("Event found for message " + ($response | ConvertTo-Json | Out-String))
-
-                                Send-SlackMsg -Text $response.Response -Channel $RTM.Channel
+                                
+                                if (![string]::IsNullOrEmpty($response.Response))
+                                {
+                                    Send-SlackMsg -Text $response.Response -Channel $RTM.Channel
+                                }
 
                                 # need to somehow tokenize the parameters to pass to script
                                 # maybe ask for parameters to be passed with - included

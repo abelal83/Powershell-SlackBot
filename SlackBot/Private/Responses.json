@@ -9,6 +9,15 @@
         "action" : ""
     },
     {
+        "keywords":  [
+                "//joke",
+                "tell",
+                "joke"
+            ],
+        "response":  "",
+        "action" : "Get-RandomJoke"
+    },
+    {
         "keywords": [
                 "get",
                 "responses",
