@@ -60,9 +60,12 @@
                             "balance",
                             "/bme"
                         ],
-        "response":  "BME actions not available",
+        "response":  "OK, getting permission before you get results",
         "action" : "Get-BmeBalance",
-        "permission" : ""
+        "permission" : "",
+        "auth" : [
+            "Abu Belal"
+        ]
     },
     {
         "keywords":  [

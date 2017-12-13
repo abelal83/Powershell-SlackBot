@@ -1,4 +1,3 @@
-$ErrorActionPreference = "Stop"
 Function Get-Response 
 {
     [cmdletbinding()]

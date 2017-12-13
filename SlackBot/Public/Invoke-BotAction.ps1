@@ -5,13 +5,24 @@ param(
 Remove-Module SlackBot -ErrorAction SilentlyContinue
 Import-Module "$PSScriptRoot\..\SlackBot.psd1"
 
+$Private = Get-ChildItem -Path "$PSScriptRoot\..\Private\*.ps1"
+
+$Private | ForEach-Object {
+    Try {
+
+        write-host "importing $_.FullName "
+        . $_.FullName
+    } Catch {
+        Write-Error -Message "Failed to import function $($_.FullName): $_"
+    }
+}
+
 $JsonEvent = Get-Content $JsonEventFile -Raw | ConvertFrom-Json
 
-$token = $JsonEvent.slacktoken
-#Web API call starts the session and gets a websocket URL to use.
-$rtmSession = Invoke-RestMethod -Uri https://slack.com/api/rtm.start -Body @{token="$token"}
+$botResponse = Get-Response -Command $JsonEvent.message.text
 
-Write-Log "I am $($rtmSession.self.name)" 
+#Web API call starts the session and gets a websocket URL to use.
+$rtmSession = Invoke-RestMethod -Uri https://slack.com/api/rtm.start -Body @{token=$JsonEvent.slacktoken}
 
 Try
 {
@@ -24,11 +35,29 @@ Try
         While (!$Conn.IsCompleted) 
         { 
             Start-Sleep -Milliseconds 100 
-        }            
+        }
+        
+        if (![System.String]::IsNullOrEmpty($botResponse.response))
+        {
+            Send-SlackMsg -Text $botResponse.response -Channel $JsonEvent.message.channel
+        }
 
-        Write-Log "Connected to $($rtmSession.URL)" 
+        if ($botResponse.auth.Count -ge 1)
+        {
+            #auth required before action can be run
+            # send message to the auth user and wait for response 
+            $imList = Invoke-RestMethod -Uri https://slack.com/api/im.list -Body @{token=$JsonEvent.slacktoken}
 
-        $Size = 1024
+            $userList = Invoke-RestMethod -Uri https://slack.com/api/users.list -Body @{token=$JsonEvent.slacktoken}
+
+            $authUser = $userList.members.Where({ $_.name -eq $botResponse.auth[0]})
+        }
+        else 
+        { 
+            break 
+        }
+
+        
         $Array = [byte[]] @(,0) * $Size
         $Recv = New-Object System.ArraySegment[byte] -ArgumentList @(,$Array)
 
@@ -49,8 +78,6 @@ Try
             } 
             Until ($Conn.Result.Count -lt $Size)
 
-            Write-Log "$RTM" 
-
             If ($RTM)
             {
                 $RTM = ($RTM | convertfrom-json)
@@ -62,7 +89,8 @@ Try
                         If ( ($_.text -Match "<@$($rtmSession.self.id)>") -or $_.channel.StartsWith('D') )
                         {
                             #A message was sent to the bot
-                            Send-SlackMsg -Text "Yo" -Channel $JsonEvent.message.channel
+                            Write-Host Messagerex
+
                                
                         } 
                         Else

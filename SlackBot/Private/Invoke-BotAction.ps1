@@ -1,7 +1,5 @@
-$ErrorActionPreference = "Stop"
-Set-PSDebug -Strict
 
-function Invoke-BotAction 
+function Invoke-BotActionx
 {
     [CmdletBinding()]
     param(
