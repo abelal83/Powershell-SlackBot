@@ -1,21 +1,21 @@
-﻿#Invokes an instance of a bot
-Function Invoke-SlackBot 
+﻿Function Invoke-SlackBot 
 {
     [cmdletbinding()]
     Param(
-        [string]$Token = (Import-Clixml "$PSScriptRoot\..\Token.xml"),  #So I don't accidentally put it on the internet
-        [string]$LogPath = "$Env:USERPROFILE\Logs\SlackBot.log",
-        [string]$PSSlackConfigPath = "$PSScriptRoot\..\PSSlackConfig.xml"
+        [string]$SlackBotConfigFile,
+        [string]$LogPath = "$Env:USERPROFILE\Logs\SlackBot.log"
     )
     
-    #Set-PSSlackConfig -Path $PSSlackConfigPath -Token $Token
+    $SlackBotConfig = (Get-Content $SlackBotConfigFile -Raw | ConvertFrom-Json)
+
+    $token = $SlackBotConfig.slackapi
     
     #Web API call starts the session and gets a websocket URL to use.
-    $RTMSession = Invoke-RestMethod -Uri https://slack.com/api/rtm.start -Body @{token="$Token"}
+    $rtmSession = Invoke-RestMethod -Uri https://slack.com/api/rtm.start -Body @{token="$token"}
+    # $users.members contains all users
+    $users = Invoke-RestMethod -Uri 'https://slack.com/api/users.list' -Body @{token="$token"}
 
-    # $users.members contains all users. Need to match id from this to id passed in message
-    $users = Invoke-RestMethod -Uri 'https://slack.com/api/users.list' -Body @{token="$Token"}
-    Write-Log "I am $($RTMSession.self.name)" -Path $LogPath
+    Write-Log "I am $($rtmSession.self.name)" -Path $LogPath
 
     Try
     {
@@ -24,13 +24,13 @@ Function Invoke-SlackBot
             $WS = New-Object System.Net.WebSockets.ClientWebSocket                                                
             $CT = New-Object System.Threading.CancellationToken                                                   
 
-            $Conn = $WS.ConnectAsync($RTMSession.URL, $CT)                                                  
+            $Conn = $WS.ConnectAsync($rtmSession.URL, $CT)                                                  
             While (!$Conn.IsCompleted) 
             { 
                 Start-Sleep -Milliseconds 100 
             }            
 
-            Write-Log "Connected to $($RTMSession.URL)" -Path $LogPath
+            Write-Log "Connected to $($rtmSession.URL)" -Path $LogPath
 
             $Size = 1024
             $Array = [byte[]] @(,0) * $Size
@@ -63,35 +63,41 @@ Function Invoke-SlackBot
                     {
                         {($_.type -eq 'message') -and (!$_.reply_to)} 
                         {
-                            If ( ($_.text -Match "<@$($RTMSession.self.id)>") -or $_.channel.StartsWith('D') )
+                            If ( ($_.text -Match "<@$($rtmSession.self.id)>") -or $_.channel.StartsWith('D') )
                             {
                                 #A message was sent to the bot
-                                $response = Get-Response -Command $_.text.ToLower()
-                                Write-Log ("Event found for message " + ($response | ConvertTo-Json | Out-String))
+                                # export message and all related info to be picked up by a new powershell process
+                                # which will handle this message, this is to ensure long running botactions don't 
+                                # block this process
+                                $jsonMessageOutput = New-Object PSCustomObject
+                                $jsonMessageOutput | Add-Member -Name message `
+                                -Value $_ -MemberType NoteProperty
+                                
+                                $jsonMessageOutput | Add-Member -Name user `
+                                -Value ($users.members.Where( {$_.id -eq $jsonMessageOutput.message.user} ) | Select-Object -First 1) `
+                                -MemberType NoteProperty
 
-                                if (![string]::IsNullOrEmpty($response.Response))
-                                {
-                                    Send-SlackMsg -Text $response.Response -Channel $RTM.Channel
-                                }
+                                $jsonMessageOutput | Add-Member -Name slacktoken `
+                                -Value $token -MemberType NoteProperty
+                             
+                                $outFileName = [guid]::NewGuid()
+                                $outFilePath = "$PSScriptRoot\..\Private\temp\$outFileName.json"
 
-                                # need to somehow tokenize the parameters to pass to script
-                                # maybe ask for parameters to be passed with - included
-                                # send user name for person to module talking to the bot                         
-                                [string] $actionResponse = Invoke-BotAction -JsonResponse $response
+                                $jsonMessageOutput | ConvertTo-Json | Out-File $outFilePath
+                                Write-Log "running powershell with -NoLogo -File $PSScriptRoot\Invoke-BotAction.ps1 $outFilePath"
 
-                                if (![string]::IsNullOrEmpty($actionResponse))
-                                {
-                                    Send-SlackMsg -Text $actionResponse -Channel $RTM.Channel
-                                }
+                                Start-Process powershell -ArgumentList `
+                                "-NoExit", "-NoLogo", "-File $PSScriptRoot\Invoke-BotAction.ps1 $outFilePath" `
+                                -WorkingDirectory "$PSScriptRoot"                                
                             } 
                             Else
                             {
-                                Write-Log "Message ignored as it wasn't sent to @$($RTMSession.self.name) or in a DM channel" -Path $LogPath
+                                Write-Log "Message ignored as it wasn't sent to @$($rtmSession.self.name) or in a DM channel" -Path $LogPath
                             }
                         }
                         { $_.type -eq 'reconnect_url'} 
                         { 
-                            $RTMSession.URL = $RTM.url 
+                            $rtmSession.URL = $RTM.url 
                         }
                         default 
                         { 

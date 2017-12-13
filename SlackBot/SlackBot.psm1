@@ -1,4 +1,4 @@
-$Public = @( Get-ChildItem -Path "$PSScriptRoot\Public\*.ps1" )
+$Public = @( Get-ChildItem -Path "$PSScriptRoot\Public\*.ps1" -Exclude "Invoke-BotAction.ps1")
 $Private = @( Get-ChildItem -Path "$PSScriptRoot\Private\*.ps1" )
 
 @($Public + $Private) | ForEach-Object {
